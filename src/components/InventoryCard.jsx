@@ -44,16 +44,16 @@ const InventoryCard = ({ id, images }) => {
         style={style}
         {...attributes}
         {...listeners}
-        className="border border-gray-300 p-4 m-2 w-60 h-60 text-center cursor-move bg-white shadow-sm rounded-md relative"
+        className="border border-gray-300 p-2 m-1 w-full sm:w-40 md:w-48 lg:w-56 h-48 sm:h-52 md:h-56 lg:h-60 text-center cursor-move bg-white shadow-sm rounded-md relative flex flex-col"
         onClick={() => setShowModal(true)}
       >
         <img
           src={images[currentImageIndex]}
           alt={`Item ${id}`}
-          className="w-full h-40 object-cover mb-2 rounded"
+          className="w-full h-32 sm:h-36 md:h-40 lg:h-44 object-cover mb-1 rounded"
         />
-        <p className="text-sm text-gray-600">ID: {displayId}</p>
-        <div className="absolute bottom-1 left-1 right-1 flex justify-between">
+        <p className="text-xs sm:text-sm text-gray-600 mb-1">ID: {displayId}</p>
+        <div className="mt-auto flex justify-between w-full">
           <button
             onClick={prevImage}
             className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-xs"
@@ -76,24 +76,24 @@ const InventoryCard = ({ id, images }) => {
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-white p-4 rounded-lg"
+            className="bg-white p-4 rounded-lg max-w-sm sm:max-w-md md:max-w-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={images[currentImageIndex].replace('/100/100', '/300/300')}
               alt={`Item ${id}`}
-              className="max-w-full max-h-full"
+              className="w-full h-auto"
             />
             <div className="mt-4 flex justify-between">
               <button
                 onClick={prevImage}
-                className="bg-gray-200 rounded px-4 py-2"
+                className="bg-gray-200 rounded px-2 py-1 text-sm"
               >
                 Previous
               </button>
               <button
                 onClick={nextImage}
-                className="bg-gray-200 rounded px-4 py-2"
+                className="bg-gray-200 rounded px-2 py-1 text-sm"
               >
                 Next
               </button>

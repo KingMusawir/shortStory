@@ -15,10 +15,10 @@ const Filter = ({ onFilterChange }) => {
   }
 
   return (
-    <div className="m-4 bg-gray-50 p-4 rounded-md">
-      <h2 className="text-xl font-bold mb-4">Filters</h2>
-      <div className="space-y-4">
-        <div>
+    <div className="bg-gray-50 p-2 sm:p-4 rounded-md shadow-sm">
+      <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4">Filters</h2>
+      <div className="space-y-2 sm:space-y-4">
+        <div className="flex flex-wrap gap-4">
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -26,10 +26,8 @@ const Filter = ({ onFilterChange }) => {
               onChange={(e) => handleFilterChange('isEven', e.target.checked)}
               className="mr-2"
             />
-            Is Even
+            <span className="text-sm sm:text-base">Is Even</span>
           </label>
-        </div>
-        <div>
           <label className="flex items-center">
             <input
               type="checkbox"
@@ -37,20 +35,24 @@ const Filter = ({ onFilterChange }) => {
               onChange={(e) => handleFilterChange('isPrime', e.target.checked)}
               className="mr-2"
             />
-            Is Prime
+            <span className="text-sm sm:text-base">Is Prime</span>
           </label>
         </div>
         <div>
-          <label className="block mb-2">Ends With</label>
+          <label className="block mb-1 sm:mb-2 text-sm sm:text-base">
+            Ends With
+          </label>
           <input
             type="text"
             value={filters.endsWith}
             onChange={(e) => handleFilterChange('endsWith', e.target.value)}
-            className="w-full p-2 border rounded"
+            className="w-full p-1 sm:p-2 border rounded text-sm sm:text-base"
           />
         </div>
         <div>
-          <label className="block mb-2">Range</label>
+          <label className="block mb-1 sm:mb-2 text-sm sm:text-base">
+            Range
+          </label>
           <div className="flex space-x-2">
             <input
               type="number"
@@ -61,7 +63,7 @@ const Filter = ({ onFilterChange }) => {
                   min: Number(e.target.value),
                 })
               }
-              className="w-1/2 p-2 border rounded"
+              className="w-1/2 p-1 sm:p-2 border rounded text-sm sm:text-base"
               placeholder="Min"
             />
             <input
@@ -73,7 +75,7 @@ const Filter = ({ onFilterChange }) => {
                   max: Number(e.target.value),
                 })
               }
-              className="w-1/2 p-2 border rounded"
+              className="w-1/2 p-1 sm:p-2 border rounded text-sm sm:text-base"
               placeholder="Max"
             />
           </div>

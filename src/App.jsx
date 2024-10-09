@@ -15,21 +15,18 @@ import Timer from './components/Timer'
 import Filter from './components/Filter'
 import InventoryCard from './components/InventoryCard'
 
-// Number of items to display per page
 const ITEMS_PER_PAGE = 20
 
 const App = () => {
-  // State variables
-  const [inventory, setInventory] = useState([]) // Full inventory
-  const [displayedInventory, setDisplayedInventory] = useState([]) // Currently displayed inventory items
-  const [selectedItems, setSelectedItems] = useState([]) // Selected items
-  const [isTimerRunning, setIsTimerRunning] = useState(false) // Timer state
-  const [filters, setFilters] = useState({}) // Applied filters
-  const [page, setPage] = useState(1) // Current page number
-  const [isSmallScreen, setIsSmallScreen] = useState(false) // Screen size state
-  const [activeId, setActiveId] = useState(null) // ID of the currently dragged item
+  const [inventory, setInventory] = useState([])
+  const [displayedInventory, setDisplayedInventory] = useState([])
+  const [selectedItems, setSelectedItems] = useState([])
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [filters, setFilters] = useState({})
+  const [page, setPage] = useState(1)
+  const [isSmallScreen, setIsSmallScreen] = useState(false)
+  const [activeId, setActiveId] = useState(null)
 
-  // Set up drag and drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -37,7 +34,6 @@ const App = () => {
     }),
   )
 
-  // Generate inventory items with random images
   const generateInventory = useCallback((start, end) => {
     return Array.from({ length: end - start }, (_, index) => ({
       id: (start + index).toString(),
@@ -49,14 +45,12 @@ const App = () => {
     }))
   }, [])
 
-  // Initialize inventory on component mount
   useEffect(() => {
     const initialInventory = generateInventory(0, 1000)
     setInventory(initialInventory)
     setDisplayedInventory(initialInventory.slice(0, ITEMS_PER_PAGE))
   }, [generateInventory])
 
-  // Handle screen size changes
   useEffect(() => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth < 640)
@@ -66,14 +60,12 @@ const App = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Check if a number is prime
   const isPrime = (num) => {
     for (let i = 2, s = Math.sqrt(num); i <= s; i++)
       if (num % i === 0) return false
     return num > 1
   }
 
-  // Load more items when scrolling
   const loadMoreItems = useCallback(() => {
     const filteredInventory = inventory.filter((item) => {
       const id = parseInt(item.id)
@@ -93,56 +85,42 @@ const App = () => {
     setPage((prev) => prev + 1)
   }, [inventory, filters, page, isPrime])
 
-  // Get the next item from the inventory
-  const getNextItem = useCallback(() => {
-    const nextItemIndex = page * ITEMS_PER_PAGE
-    if (nextItemIndex < inventory.length) {
-      return inventory[nextItemIndex]
-    }
-    return null
-  }, [inventory, page])
-
-  // Handle the start of a drag operation
   const handleDragStart = (event) => {
     const { active } = event
     setActiveId(active.id)
   }
 
-  // Handle the end of a drag operation
   const handleDragEnd = (event) => {
     const { active, over } = event
     setActiveId(null)
 
     if (active.id !== over.id) {
-      if (over.id === 'selection' && selectedItems.length < 10) {
+      if (over.id === 'selection') {
         // Move from inventory to selection
-        const movedItemIndex = displayedInventory.findIndex(
+        const movedItem = displayedInventory.find(
           (item) => item.id === active.id,
         )
-        if (movedItemIndex !== -1) {
-          const movedItem = displayedInventory[movedItemIndex]
-          setSelectedItems((prevItems) => [...prevItems, movedItem])
-
-          // Get the next item from inventory
-          const nextItemIndex = page * ITEMS_PER_PAGE
-          const nextItem =
-            nextItemIndex < inventory.length ? inventory[nextItemIndex] : null
-
-          setDisplayedInventory((prevItems) => {
-            const newItems = prevItems.filter((item) => item.id !== active.id)
-            if (nextItem) {
-              newItems.push(nextItem)
-            }
-            return newItems
+        if (movedItem) {
+          console.log('Adding item to selection:', movedItem) // Debug log
+          setSelectedItems((prev) => {
+            const newSelected = [...prev, movedItem]
+            console.log('New selected items:', newSelected) // Debug log
+            return newSelected
           })
+          setDisplayedInventory((prev) =>
+            prev.filter((item) => item.id !== active.id),
+          )
 
           if (!isTimerRunning) {
             setIsTimerRunning(true)
           }
 
-          // Increment the page if we've added a new item
-          if (nextItem) {
-            setPage((prevPage) => prevPage + 1)
+          // Load a new item to replace the moved one
+          const nextItemIndex = page * ITEMS_PER_PAGE
+          if (nextItemIndex < inventory.length) {
+            const nextItem = inventory[nextItemIndex]
+            setDisplayedInventory((prev) => [...prev, nextItem])
+            setPage((prev) => prev + 1)
           }
         }
       } else if (
@@ -150,17 +128,12 @@ const App = () => {
         over.id === 'inventory'
       ) {
         // Move from selection back to inventory
-        const movedItemIndex = selectedItems.findIndex(
-          (item) => `selection-${item.id}` === active.id,
-        )
-        if (movedItemIndex !== -1) {
-          const movedItem = selectedItems[movedItemIndex]
-          setDisplayedInventory((prevItems) => [
-            movedItem,
-            ...prevItems.slice(0, -1),
-          ])
-          setSelectedItems((prevItems) =>
-            prevItems.filter((item) => `selection-${item.id}` !== active.id),
+        const movedItemId = active.id.replace('selection-', '')
+        const movedItem = selectedItems.find((item) => item.id === movedItemId)
+        if (movedItem) {
+          setDisplayedInventory((prev) => [movedItem, ...prev.slice(0, -1)])
+          setSelectedItems((prev) =>
+            prev.filter((item) => item.id !== movedItemId),
           )
         }
       } else if (
@@ -181,11 +154,9 @@ const App = () => {
     }
   }
 
-  // Handle filter changes
   const handleFilterChange = useCallback(
     (newFilters) => {
       setFilters(newFilters)
-
       const filteredInventory = inventory.filter((item) => {
         const id = parseInt(item.id)
         return (
@@ -196,14 +167,12 @@ const App = () => {
           id <= newFilters.range.max
         )
       })
-
       setDisplayedInventory(filteredInventory.slice(0, ITEMS_PER_PAGE))
       setPage(1)
     },
     [inventory, isPrime],
   )
 
-  // Render a message for small screens
   if (isSmallScreen) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -214,7 +183,6 @@ const App = () => {
     )
   }
 
-  // Main render
   return (
     <DndContext
       sensors={sensors}
@@ -223,7 +191,7 @@ const App = () => {
       onDragEnd={handleDragEnd}
     >
       <main className="flex flex-col h-screen">
-        <section className="flex gap-4 bg-gray-200">
+        <section className="flex gap-4 bg-gray-200 h-2/3">
           <div className="w-3/4 p-4 overflow-hidden">
             <InventoryView
               items={displayedInventory}
@@ -234,9 +202,14 @@ const App = () => {
             <Filter onFilterChange={handleFilterChange} />
           </div>
         </section>
-        <section className="grid grid-cols-[1fr_16rem] gap-4 p-4 bg-gray-200 mt-4 items-center justify-center">
-          <SelectionView selectedItems={selectedItems} />
-          <Timer isRunning={isTimerRunning} />
+
+        <section className="flex gap-4 bg-gray-200 mt-4 h-1/3">
+          <div className="w-3/4 p-4 overflow-hidden">
+            <SelectionView selectedItems={selectedItems} />
+          </div>
+          <div className="w-1/4 p-4">
+            <Timer isRunning={isTimerRunning} />
+          </div>
         </section>
         <DragOverlay>
           {activeId ? (
