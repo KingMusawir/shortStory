@@ -95,18 +95,16 @@ const App = () => {
     setActiveId(null)
 
     if (active.id !== over.id) {
-      if (over.id === 'selection') {
+      if (
+        (over.id === 'selection' || over.id.startsWith('selection-')) &&
+        selectedItems.length < 10
+      ) {
         // Move from inventory to selection
         const movedItem = displayedInventory.find(
           (item) => item.id === active.id,
         )
         if (movedItem) {
-          console.log('Adding item to selection:', movedItem) // Debug log
-          setSelectedItems((prev) => {
-            const newSelected = [...prev, movedItem]
-            console.log('New selected items:', newSelected) // Debug log
-            return newSelected
-          })
+          setSelectedItems((prev) => [...prev, movedItem])
           setDisplayedInventory((prev) =>
             prev.filter((item) => item.id !== active.id),
           )
@@ -124,14 +122,20 @@ const App = () => {
           }
         }
       } else if (
+        (over.id === 'selection' || over.id.startsWith('selection-')) &&
+        selectedItems.length >= 10
+      ) {
+        // Provide feedback when selection is full
+        alert('Selection is full. Remove an item to add a new one.')
+      } else if (
         active.id.startsWith('selection-') &&
-        over.id === 'inventory'
+        (over.id === 'inventory' || over.id.startsWith('inventoryItem-'))
       ) {
         // Move from selection back to inventory
         const movedItemId = active.id.replace('selection-', '')
         const movedItem = selectedItems.find((item) => item.id === movedItemId)
         if (movedItem) {
-          setDisplayedInventory((prev) => [movedItem, ...prev.slice(0, -1)])
+          setDisplayedInventory((prev) => [movedItem, ...prev])
           setSelectedItems((prev) =>
             prev.filter((item) => item.id !== movedItemId),
           )

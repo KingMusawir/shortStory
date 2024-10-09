@@ -9,20 +9,22 @@ const SelectionView = ({ selectedItems }) => {
   })
 
   return (
-    <div className="flex flex-col h-full" ref={setNodeRef}>
-      <div className="flex-grow overflow-y-auto bg-white rounded-md shadow-inner p-2">
+    <div
+      className={`h-72 bg-blue-300 rounded-md shadow-inner p-2 ${
+        selectedItems.length >= 10 ? 'border-2 border-red-500' : ''
+      }`}
+      ref={setNodeRef}
+    >
+      <div className="h-full overflow-x-auto">
         <SortableContext
           items={selectedItems.map((item) => `selection-${item.id}`)}
           strategy={rectSortingStrategy}
         >
-          {/*<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6  gap-12 md:gap-4">*/}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-4 min-h-full">
+          <div className="flex gap-4 h-full">
             {selectedItems.map((item) => (
-              <InventoryCard
-                key={`selection-${item.id}`}
-                {...item}
-                id={`selection-${item.id}`}
-              />
+              <div key={`selection-${item.id}`} className="flex-shrink-0">
+                <InventoryCard {...item} id={`selection-${item.id}`} />
+              </div>
             ))}
           </div>
         </SortableContext>

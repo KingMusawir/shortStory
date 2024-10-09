@@ -25,7 +25,7 @@ const InventoryView = ({ items, onLoadMore }) => {
   return (
     <div
       ref={setNodeRef}
-      className="mt-8 overflow-y-auto"
+      className="mt-8 overflow-y-auto h-full"
       style={{ maxHeight: 'calc(100vh - 380px)' }}
     >
       <h2 className="text-2xl font-bold mb-4">Inventory</h2>
@@ -33,7 +33,7 @@ const InventoryView = ({ items, onLoadMore }) => {
         items={items.map((item) => item.id)}
         strategy={rectSortingStrategy}
       >
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4  gap-4 min-h-full">
           {items.map((item, index) => (
             <div
               key={item.id}
