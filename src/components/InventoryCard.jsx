@@ -4,7 +4,8 @@ import { CSS } from '@dnd-kit/utilities'
 
 const InventoryCard = ({ id, images }) => {
   // State for modal visibility and current image index
-  const [showModal, setShowModal] = useState(false)
+  const [showClickModal, setShowClickModal] = useState(false)
+  const [showHoverModal, setShowHoverModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   // Set up sortable functionality
@@ -45,7 +46,9 @@ const InventoryCard = ({ id, images }) => {
         {...attributes}
         {...listeners}
         className="border border-gray-300 p-2 m-1 w-full sm:w-40 md:w-48 lg:w-56 h-48 sm:h-52 md:h-56 lg:h-60 text-center cursor-move bg-white shadow-sm rounded-md relative flex flex-col"
-        onClick={() => setShowModal(true)}
+        onClick={() => setShowClickModal(true)}
+        onMouseEnter={() => setShowHoverModal(true)}
+        onMouseLeave={() => setShowHoverModal(false)}
       >
         <img
           src={images[currentImageIndex]}
@@ -69,11 +72,24 @@ const InventoryCard = ({ id, images }) => {
         </div>
       </div>
 
-      {/* Modal for larger image view */}
-      {showModal && (
+      {/* Hover Modal for larger image view */}
+      {showHoverModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="bg-white p-4 rounded-lg max-w-3xl max-h-3xl shadow-lg">
+            <img
+              src={images[currentImageIndex].replace('/100/100', '/600/600')}
+              alt={`Item ${id}`}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Click Modal for larger image view with navigation */}
+      {showClickModal && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
-          onClick={() => setShowModal(false)}
+          onClick={() => setShowClickModal(false)}
         >
           <div
             className="bg-white p-4 rounded-lg max-w-sm sm:max-w-md md:max-w-lg"
