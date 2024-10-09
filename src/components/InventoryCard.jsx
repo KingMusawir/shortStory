@@ -109,7 +109,7 @@ const InventoryCard = ({ id, images }) => {
               </button>
               <button
                 onClick={nextImage}
-                className="bg-gray-200 rounded px-2 py-1 text-sm"
+                className="bg-gray-200 rounded px-2 py-2 text-sm"
               >
                 Next
               </button>
