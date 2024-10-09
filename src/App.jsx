@@ -26,6 +26,7 @@ const App = () => {
   const [page, setPage] = useState(1)
   const [isSmallScreen, setIsSmallScreen] = useState(false)
   const [activeId, setActiveId] = useState(null)
+  const [isDraggingOverSelection, setIsDraggingOverSelection] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -90,43 +91,50 @@ const App = () => {
     setActiveId(active.id)
   }
 
+  const handleDragOver = (event) => {
+    const { over } = event
+    setIsDraggingOverSelection(
+      over && (over.id === 'selection' || over.id.startsWith('selection-')),
+    )
+  }
+
   const handleDragEnd = (event) => {
     const { active, over } = event
     setActiveId(null)
+    setIsDraggingOverSelection(false)
 
     if (active.id !== over.id) {
       if (
         (over.id === 'selection' || over.id.startsWith('selection-')) &&
-        selectedItems.length < 10
+        !active.id.startsWith('selection-')
       ) {
         // Move from inventory to selection
-        const movedItem = displayedInventory.find(
-          (item) => item.id === active.id,
-        )
-        if (movedItem) {
-          setSelectedItems((prev) => [...prev, movedItem])
-          setDisplayedInventory((prev) =>
-            prev.filter((item) => item.id !== active.id),
+        if (selectedItems.length < 10) {
+          const movedItem = displayedInventory.find(
+            (item) => item.id === active.id,
           )
+          if (movedItem) {
+            setSelectedItems((prev) => [...prev, movedItem])
+            setDisplayedInventory((prev) =>
+              prev.filter((item) => item.id !== active.id),
+            )
 
-          if (!isTimerRunning) {
-            setIsTimerRunning(true)
-          }
+            if (!isTimerRunning) {
+              setIsTimerRunning(true)
+            }
 
-          // Load a new item to replace the moved one
-          const nextItemIndex = page * ITEMS_PER_PAGE
-          if (nextItemIndex < inventory.length) {
-            const nextItem = inventory[nextItemIndex]
-            setDisplayedInventory((prev) => [...prev, nextItem])
-            setPage((prev) => prev + 1)
+            // Load a new item to replace the moved one
+            const nextItemIndex = page * ITEMS_PER_PAGE
+            if (nextItemIndex < inventory.length) {
+              const nextItem = inventory[nextItemIndex]
+              setDisplayedInventory((prev) => [...prev, nextItem])
+              setPage((prev) => prev + 1)
+            }
           }
+        } else {
+          // Provide feedback when selection is full
+          alert('Selection is full. Remove an item to add a new one.')
         }
-      } else if (
-        (over.id === 'selection' || over.id.startsWith('selection-')) &&
-        selectedItems.length >= 10
-      ) {
-        // Provide feedback when selection is full
-        alert('Selection is full. Remove an item to add a new one.')
       } else if (
         active.id.startsWith('selection-') &&
         (over.id === 'inventory' || over.id.startsWith('inventoryItem-'))
@@ -192,6 +200,7 @@ const App = () => {
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <main className="flex flex-col h-screen">
@@ -209,7 +218,10 @@ const App = () => {
 
         <section className="flex gap-4 bg-gray-200 mt-4 h-1/3">
           <div className="w-3/4 p-4 overflow-hidden">
-            <SelectionView selectedItems={selectedItems} />
+            <SelectionView
+              selectedItems={selectedItems}
+              isDraggingOverSelection={isDraggingOverSelection}
+            />
           </div>
           <div className="w-1/4 p-4">
             <Timer isRunning={isTimerRunning} />

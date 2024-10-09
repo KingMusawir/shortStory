@@ -3,16 +3,16 @@ import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import InventoryCard from './InventoryCard'
 
-const SelectionView = ({ selectedItems }) => {
+const SelectionView = ({ selectedItems, isDraggingOverSelection }) => {
   const { setNodeRef } = useDroppable({
     id: 'selection',
   })
 
   return (
     <div
-      className={`h-72 bg-blue-300 rounded-md shadow-inner p-2 ${
-        selectedItems.length >= 10 ? 'border-2 border-red-500' : ''
-      }`}
+      className={`h-72 rounded-md shadow-inner p-2 transition-colors duration-200 ${
+        isDraggingOverSelection ? 'bg-orange-200' : 'bg-blue-300'
+      } ${selectedItems.length >= 10 ? 'border-2 border-red-500' : ''}`}
       ref={setNodeRef}
     >
       <div className="h-full overflow-x-auto">
