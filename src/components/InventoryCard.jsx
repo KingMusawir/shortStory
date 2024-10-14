@@ -1,44 +1,42 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const InventoryCard = ({ id, images }) => {
+const InventoryCard = ({ id, originalId, image }) => {
   const [showClickModal, setShowClickModal] = useState(false)
   const [showHoverModal, setShowHoverModal] = useState(false)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [hoverModalPosition, setHoverModalPosition] = useState({
     top: 0,
     left: 0,
   })
   const cardRef = useRef(null)
+  const fallbackImage = 'https://picsum.photos/100/100?random=' + id
 
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: id })
+  // console.log('Rendering InventoryCard:', { id, originalId, image })
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
     transition,
-  }
+    isDragging,
+  } = useSortable({ id })
 
-  const displayId = id.startsWith('selection-')
-    ? id.replace('selection-', '')
-    : id
+  const style = useMemo(
+    () => ({
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    }),
+    [transform, transition, isDragging],
+  )
 
-  const nextImage = (e) => {
-    e.stopPropagation()
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length)
-  }
+  const displayId = id.startsWith('selection-') ? originalId : id
 
-  const prevImage = (e) => {
-    e.stopPropagation()
-    setCurrentImageIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length,
-    )
-  }
-
-  const updateHoverModalPosition = () => {
+  const updateHoverModalPosition = useCallback(() => {
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect()
       setHoverModalPosition({
@@ -46,32 +44,16 @@ const InventoryCard = ({ id, images }) => {
         left: rect.left + window.scrollX,
       })
     }
-  }
+  }, [])
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (showHoverModal) {
-        updateHoverModalPosition()
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll, true)
-    window.addEventListener('resize', handleScroll)
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true)
-      window.removeEventListener('resize', handleScroll)
-    }
-  }, [showHoverModal])
-
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     setShowHoverModal(true)
     updateHoverModalPosition()
-  }
+  }, [updateHoverModalPosition])
 
   const HoverModal = () => (
     <AnimatePresence>
-      {showHoverModal && (
+      {showHoverModal && image && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -87,8 +69,8 @@ const InventoryCard = ({ id, images }) => {
         >
           <div className="bg-white p-4 rounded-lg shadow-lg">
             <img
-              src={images[currentImageIndex].replace('/100/100', '/300/300')}
-              alt={`Item ${id}`}
+              src={image.replace('/100/100', '/300/300')}
+              alt={`Item ${displayId}`}
               className="max-w-full max-h-full object-contain"
             />
           </div>
@@ -112,31 +94,31 @@ const InventoryCard = ({ id, images }) => {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setShowHoverModal(false)}
       >
-        <img
-          src={images[currentImageIndex]}
-          alt={`Item ${id}`}
-          className="w-full h-32 sm:h-36 md:h-40 lg:h-44 object-cover mb-1 rounded"
-        />
-        <p className="text-xs sm:text-sm text-gray-600 mb-1">ID: {displayId}</p>
-        <div className="mt-auto flex justify-between w-full">
-          <button
-            onClick={prevImage}
-            className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-xs"
-          >
-            &lt;
-          </button>
-          <button
-            onClick={nextImage}
-            className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-xs"
-          >
-            &gt;
-          </button>
-        </div>
+        {image ? (
+          <div className="relative w-full h-32 sm:h-36 md:h-40 lg:h-44 mb-1">
+            <img
+              src={image}
+              alt={`Item ${displayId}`}
+              className="w-full h-full object-cover rounded"
+              onError={(e) => {
+                e.target.onerror = null
+                e.target.src = fallbackImage
+              }}
+            />
+          </div>
+        ) : (
+          <div className="w-full h-32 sm:h-36 md:h-40 lg:h-44 bg-gray-200 flex items-center justify-center mb-1 rounded">
+            No image
+          </div>
+        )}
+        <p className="text-xs sm:text-sm text-gray-600 mb-1">
+          ID: {displayId || 'N/A'}
+        </p>
       </div>
 
       {createPortal(<HoverModal />, document.body)}
 
-      {showClickModal && (
+      {showClickModal && image && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
           onClick={() => setShowClickModal(false)}
@@ -146,24 +128,10 @@ const InventoryCard = ({ id, images }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={images[currentImageIndex].replace('/100/100', '/300/300')}
-              alt={`Item ${id}`}
+              src={image.replace('/100/100', '/300/300')}
+              alt={`Item ${displayId}`}
               className="w-full h-auto"
             />
-            <div className="mt-4 flex justify-between">
-              <button
-                onClick={prevImage}
-                className="bg-gray-200 rounded px-2 py-1 text-sm"
-              >
-                Previous
-              </button>
-              <button
-                onClick={nextImage}
-                className="bg-gray-200 rounded px-2 py-2 text-sm"
-              >
-                Next
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -171,4 +139,4 @@ const InventoryCard = ({ id, images }) => {
   )
 }
 
-export default InventoryCard
+export default React.memo(InventoryCard)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const Filter = ({ onFilterChange }) => {
   const [filters, setFilters] = useState({
@@ -9,10 +9,15 @@ const Filter = ({ onFilterChange }) => {
   })
 
   const handleFilterChange = (key, value) => {
-    const newFilters = { ...filters, [key]: value }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
+    setFilters((prevFilters) => {
+      const newFilters = { ...prevFilters, [key]: value }
+      return newFilters
+    })
   }
+
+  useEffect(() => {
+    onFilterChange(filters)
+  }, [filters, onFilterChange])
 
   return (
     <div className="bg-gray-50 p-2 sm:p-4 rounded-md shadow-sm">
